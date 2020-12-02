@@ -25,9 +25,6 @@ class Journal extends Model
      * @var string
      */
     protected $table = 'accounting_journals';
-    protected $hasLedger = true;
-
-
 
     public function morphed(): MorphTo
     {
