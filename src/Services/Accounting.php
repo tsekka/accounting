@@ -8,7 +8,8 @@ use Carbon\Carbon;
 use Scottlaurent\Accounting\Models\Journal;
 use Money\Money;
 use Money\Currency;
-use Scottlaurent\Accounting\Exceptions\{InvalidJournalEntryValue,
+use Scottlaurent\Accounting\Exceptions\{
+    InvalidJournalEntryValue,
     InvalidJournalMethod,
     DebitsAndCreditsDoNotEqual,
     TransactionCouldNotBeProcessed
@@ -28,7 +29,7 @@ class Accounting
     }
 
     /**
-     * @param Journal $journal
+     * @param object $journal
      * @param string $method
      * @param Money $money
      * @param string|null $memo
@@ -39,7 +40,7 @@ class Accounting
      * @internal param int $value
      */
     function addTransaction(
-        Journal $journal,
+        object $journal,
         string $method,
         Money $money,
         string $memo = null,
@@ -66,7 +67,7 @@ class Accounting
     }
 
     /**
-     * @param Journal $journal
+     * @param object $journal
      * @param string $method
      * @param $value
      * @param string|null $memo
@@ -76,7 +77,7 @@ class Accounting
      * @throws InvalidJournalMethod
      */
     function addDollarTransaction(
-        Journal $journal,
+        object $journal,
         string $method,
         $value,
         string $memo = null,
@@ -102,8 +103,12 @@ class Accounting
             DB::beginTransaction();
 
             foreach ($this->transactions_pending as $transaction_pending) {
-                $transaction = $transaction_pending['journal']->{$transaction_pending['method']}($transaction_pending['money'],
-                    $transaction_pending['memo'], $transaction_pending['postdate'], $transactionGroupUUID);
+                $transaction = $transaction_pending['journal']->{$transaction_pending['method']}(
+                    $transaction_pending['money'],
+                    $transaction_pending['memo'],
+                    $transaction_pending['postdate'],
+                    $transactionGroupUUID
+                );
                 if ($object = $transaction_pending['referenced_object']) {
                     $transaction->referencesObject($object);
                 }
@@ -112,7 +117,6 @@ class Accounting
             DB::commit();
 
             return $transactionGroupUUID;
-
         } catch (\Exception $e) {
             DB::rollBack();
             throw new TransactionCouldNotBeProcessed('Rolling Back Database. Message: ' . $e->getMessage());

@@ -16,7 +16,6 @@ use Scottlaurent\Accounting\ModelTraits\AccountingJournal;
  */
 class User extends Model
 {
+	public $journalClass = 'Models\TestJournal';
 	use AccountingJournal;
 }
-
-

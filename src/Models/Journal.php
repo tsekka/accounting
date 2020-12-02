@@ -25,6 +25,9 @@ class Journal extends Model
      * @var string
      */
     protected $table = 'accounting_journals';
+    protected $hasLedger = true;
+
+
 
     public function morphed(): MorphTo
     {
@@ -102,7 +105,6 @@ class Journal extends Model
     {
         $balance = $this->transactions()->where('post_date', '<=', $date)->sum('debit') ?: 0;
         return new Money($balance, new Currency($this->currency));
-
     }
 
     public function transactionsReferencingObjectQuery(Model $object): HasMany
@@ -152,30 +154,12 @@ class Journal extends Model
         return new Money($balance, new Currency($this->currency));
     }
 
-    /**
-     * Get the balance of the journal in dollars.  This "could" include future dates.
-     * @return float|int
-     */
-    public function getCurrentBalanceInDollars()
-    {
-        return $this->getCurrentBalance()->getAmount() / 100;
-    }
-
-    /**
-     * Get balance
-     * @return float|int
-     */
-    public function getBalanceInDollars()
-    {
-        return $this->getBalance()->getAmount() / 100;
-    }
-
     public function credit(
         $value,
         string $memo = null,
         Carbon $post_date = null,
         string $transaction_group = null
-    ): JournalTransaction {
+    ) {
         $value = is_a($value, Money::class)
             ? $value
             : new Money($value, new Currency($this->currency));
@@ -187,89 +171,11 @@ class Journal extends Model
         string $memo = null,
         Carbon $post_date = null,
         $transaction_group = null
-    ): JournalTransaction {
+    ) {
         $value = is_a($value, Money::class)
             ? $value
             : new Money($value, new Currency($this->currency));
         return $this->post(null, $value, $memo, $post_date, $transaction_group);
-    }
-
-    /**
-     * Credit a journal by a given dollar amount
-     * @param Money|float $value
-     * @param string  $memo
-     * @param Carbon $post_date
-     * @return JournalTransaction
-     */
-    public function creditDollars($value, string $memo = null, Carbon $post_date = null): JournalTransaction
-    {
-        $value = (int)($value * 100);
-        return $this->credit($value, $memo, $post_date);
-    }
-
-    /**
-     * Debit a journal by a given dollar amount
-     * @param Money|float $value
-     * @param string $memo
-     * @param Carbon $post_date
-     * @return JournalTransaction
-     */
-    public function debitDollars($value, string $memo = null, Carbon $post_date = null): JournalTransaction
-    {
-        $value = (int)($value * 100);
-        return $this->debit($value, $memo, $post_date);
-    }
-
-    /**
-     * Calculate the dollar amount debited to a journal today
-     * @return float|int
-     */
-    public function getDollarsDebitedToday()
-    {
-        $today = Carbon::now();
-        return $this->getDollarsDebitedOn($today);
-    }
-
-    /**
-     * Calculate the dollar amount credited to a journal today
-     * @return float|int
-     */
-    public function getDollarsCreditedToday()
-    {
-        $today = Carbon::now();
-        return $this->getDollarsCreditedOn($today);
-    }
-
-    /**
-     * Calculate the dollar amount debited to a journal on a given day
-     * @param Carbon $date
-     * @return float|int
-     */
-    public function getDollarsDebitedOn(Carbon $date)
-    {
-        return $this
-                ->transactions()
-                ->whereBetween('post_date', [
-                    $date->copy()->startOfDay(),
-                    $date->copy()->endOfDay()
-                ])
-                ->sum('debit') / 100;
-    }
-
-    /**
-     * Calculate the dollar amount credited to a journal on a given day
-     * @param Carbon $date
-     * @return float|int
-     */
-    public function getDollarsCreditedOn(Carbon $date)
-    {
-        return $this
-                ->transactions()
-                ->whereBetween('post_date', [
-                    $date->copy()->startOfDay(),
-                    $date->copy()->endOfDay()
-                ])
-                ->sum('credit') / 100;
     }
 
     private function post(
@@ -278,18 +184,19 @@ class Journal extends Model
         string $memo = null,
         Carbon $post_date = null,
         string $transaction_group = null
-    ): JournalTransaction {
-        $transaction = new JournalTransaction;
-        $transaction->credit = $credit ? $credit->getAmount() : null;
-        $transaction->debit = $debit ? $debit->getAmount() : null;
+    ) {
         $currency_code = $credit
             ? $credit->getCurrency()->getCode()
             : $debit->getCurrency()->getCode();
-        $transaction->memo = $memo;
-        $transaction->currency = $currency_code;
-        $transaction->post_date = $post_date ?: Carbon::now();
-        $transaction->transaction_group = $transaction_group;
-        $this->transactions()->save($transaction);
-        return $transaction;
+        $transaction = [
+            'credit' => $credit ? $credit->getAmount() : null,
+            'debit' => $debit ? $debit->getAmount() : null,
+            'memo' => $memo,
+            'currency' => $currency_code,
+            'post_date' => $post_date ?: Carbon::now(),
+            'transaction_group' => $transaction_group,
+        ];
+
+       return $this->transactions()->create($transaction);
     }
 }

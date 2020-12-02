@@ -10,9 +10,15 @@ use Scottlaurent\Accounting\Models\Journal;
 
 trait AccountingJournal
 {
+
+    protected function getJournalClass()
+    {
+        return isset($this->journalClass) ? $this->journalClass : Journal::class;
+    }
+
     public function journal(): MorphOne
     {
-        return $this->morphOne(Journal::class, 'morphed');
+        return $this->morphOne($this->getJournalClass(), 'morphed');
     }
 
     /**
@@ -23,12 +29,15 @@ trait AccountingJournal
      * @return mixed
      * @throws JournalAlreadyExists
      */
-    public function initJournal(?string $currency_code = 'USD', ?string $ledger_id = null)
+    public function initJournal(?string $currency_code = null, ?string $ledger_id = null)
     {
         if (!$this->journal) {
-            $journal = new Journal();
-            $journal->ledger_id = $ledger_id;
-            $journal->currency = $currency_code;
+            $journalClassName = $this->getJournalClass();
+            $journal = new $journalClassName();
+            if ($ledger_id) {
+                $journal->ledger_id = $ledger_id;
+            }
+            $journal->currency = $currency_code ?? config('accounting.base_currency');
             $journal->balance = 0;
             return $this->journal()->save($journal);
         }

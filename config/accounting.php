@@ -1,5 +1,5 @@
 <?php
 
 return [
-    'base_currency' => 'USD',
+    'base_currency' => 'USD'
 ];

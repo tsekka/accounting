@@ -4,12 +4,12 @@
 require_once ('BaseTest.php');
 
 use Money\Money;
-use Scottlaurent\Accounting\Models\Journal;
+// use Scottlaurent\Accounting\Models\Journal;
+use Models\TestJournal as Journal;
 
 use Models\User;
 use Models\Account;
 use Models\Product;
-
 
 /**
  * Class JournalTest
@@ -22,7 +22,7 @@ class JournalTest extends BaseTest
 	 */
 	public function testJournals()
 	{
-		
+
 		// create some sample model types that will have journals
 		$user = $this->createFakeUser();
 

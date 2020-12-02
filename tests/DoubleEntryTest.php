@@ -4,8 +4,8 @@
 require_once('BaseTest.php');
 
 use Scottlaurent\Accounting\Services\Accounting as AccountingService;
-use Scottlaurent\Accounting\Models\JournalTransaction;
 use \Scottlaurent\Accounting\Exceptions\{InvalidJournalMethod, InvalidJournalEntryValue, DebitsAndCreditsDoNotEqual};
+use Scottlaurent\Accounting\TestJournalTransaction as JournalTransaction;
 
 class DoubleEntryTest extends BaseTest
 {

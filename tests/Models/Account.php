@@ -14,6 +14,7 @@ use Scottlaurent\Accounting\ModelTraits\AccountingJournal;
  */
 class Account extends Model
 {
+	public $journalClass = 'Models\TestJournal';
 	use AccountingJournal;
 }
 
