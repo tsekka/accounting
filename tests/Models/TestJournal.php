@@ -16,5 +16,4 @@ class TestJournal extends Journal
     {
         return $this->hasMany(TestJournalTransaction::class, 'journal_id', 'id');
     }
-
 }

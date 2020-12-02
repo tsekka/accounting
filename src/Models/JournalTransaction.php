@@ -42,7 +42,7 @@ class JournalTransaction extends Model
     /**
      * @var array
      */
-    protected $guarded=['id'];
+    protected $guarded = ['id'];
 
     /**
      * @var array
@@ -62,9 +62,9 @@ class JournalTransaction extends Model
             $transaction->id = \Ramsey\Uuid\Uuid::uuid4()->toString();
         });
 
-//        static::saved(function ($transaction) {
-//            $transaction->journal->resetCurrentBalances();
-//        });
+        //        static::saved(function ($transaction) {
+        //            $transaction->journal->resetCurrentBalances();
+        //        });
 
         static::deleted(function ($transaction) {
             $transaction->journal->resetCurrentBalances();
@@ -89,8 +89,8 @@ class JournalTransaction extends Model
      */
     public function referencesObject($object)
     {
-        $this->ref_class    = get_class($object);
-        $this->ref_class_id = $object->id;
+        $this->reference_type    = get_class($object);
+        $this->reference_id = $object->id;
         $this->save();
         return $this;
     }
@@ -102,11 +102,17 @@ class JournalTransaction extends Model
      */
     public function getReferencedObject()
     {
-        /**
-         * @var Model $_class
-         */
-        $_class = new $this->ref_class;
-        return $_class->find($this->ref_class_id);
+        return $this->reference;
+        // /**
+        //  * @var Model $_class
+        //  */
+        // $_class = new $this->reference_type;
+        // return $_class->find($this->reference_id);
+    }
+
+    public function reference()
+    {
+        return $this->morphTo();
     }
 
     /**
@@ -118,5 +124,4 @@ class JournalTransaction extends Model
     {
         $this->currency = $currency;
     }
-
 }

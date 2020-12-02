@@ -108,8 +108,8 @@ class Journal extends Model
     {
         return $this
             ->transactions()
-            ->where('ref_class', get_class($object))
-            ->where('ref_class_id', $object->id);
+            ->where('reference_type', get_class($object))
+            ->where('reference_id', $object->id);
     }
 
     /**
@@ -194,6 +194,6 @@ class Journal extends Model
             'transaction_group' => $transaction_group,
         ];
 
-       return $this->transactions()->create($transaction);
+        return $this->transactions()->create($transaction);
     }
 }
